@@ -1,0 +1,22 @@
+{
+  "column": ["k", "p", "s", "sc", "scvo", "av", "ae", "xx", "xy", "vbl", "bgc"],
+  "tab_group": ["k", "p", "s", "f", "tl", "xx", "xy"],
+  "tab": ["k", "p", "d", "ae", "xx", "xy"],
+  "frame": ["k", "p", "s", "av", "ae", "f", "xx", "xy"],
+  "canvas": ["k", "p", "s", "xx", "xy"],
+  "graph": ["k", "p", "s", "bw", "bgc"],
+  "label": ["k", "p", "s", "f", "xx", "xy", "v"],
+  "progress_bar": ["k", "p", "s", "xx", "xy", "v"],
+  "in_line": ["k", "p", "s", "ro", "f", "xx", "xy", "v"],
+  "in_lines": ["k", "p", "s", "f", "d", "ns", "xx", "xy", "v"],
+  "in_radio": ["k", "p", "s", "ro", "f", "xx", "xy", "v", "g"],
+  "in_checkbox": ["k", "p", "d", "s", "xx", "xy", "v"],
+  "in_combo": ["k", "p", "d", "s", "xx", "xy", "dv", "ro", "f", "v"],
+  "button": ["k", "p", "s", "d", "f", "v"],
+  "button_file": ["k", "tg", "p", "s", "d", "f", "v"],
+  "button_files": ["k", "tg", "p", "s", "d", "f", "v"],
+  "button_save": ["k", "tg", "p", "s", "d", "f", "v"],
+  "button_folder": ["k", "tg", "p", "s", "d", "f", "v"],
+  "button_calendar": ["k", "tg", "p", "s", "d", "f", "v"],
+  "button_color": ["k", "tg", "p", "s", "d", "f", "v"]
+}

@@ -1,0 +1,62 @@
+{
+  "t": ["type", "'str'"],
+  "v": ["value", "'str'"],
+  "k": ["key", "'str'"],
+  "p": ["pad", [
+    [
+      "int",
+      "int"
+    ], [
+      "int",
+      "int"
+    ]
+  ]],
+  "s": ["size", [
+    "int",
+    "int"
+  ]],
+  "d": ["disabled", "'bool'"],
+  "bw": ["border_width", "'int'"],
+  "f": ["font", [
+    "str",
+    "int"
+  ]],
+  "g": ["group", "'str'"],
+  "df": ["default", "'bool'"],
+  "dv": ["default_value", "'str'"],
+  "tl": ["tab_location", [
+    "top",
+    "topleft",
+    "topright",
+    "left",
+    "lefttop",
+    "leftbottom",
+    "right",
+    "righttop",
+    "rightbottom",
+    "bottom",
+    "bottomleft",
+    "bottomright"
+  ]],
+  "ro": ["readonly", "'bool'"],
+  "av": ["vertical_alignment", [
+    "top",
+    "center",
+    "bottom"
+  ]],
+  "ae": ["element_justification", [
+    "left",
+    "center",
+    "right"
+  ]],
+  "tg": ["target", "'str'"],
+  "sc": ["scrollable", "'bool'"],
+  "scvo": ["vertical_scroll_only", "'bool'"],
+  "ns": ["no_scrollbar", "'bool'"],
+  "xx": ["expand_x", "'bool'"],
+  "xy": ["expand_y", "'bool'"],
+  "tw": ["truncate_height", "'bool'"],
+  "th": ["truncate_width", "'bool'"],
+  "vbl": ["visible", "'bool'"],
+  "bgc": ["background_color", "'str'"]
+  }

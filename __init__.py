@@ -16,7 +16,7 @@ from .Model import Model
 from .Workarea import Workarea
 
 script_dir = os.path.dirname(__file__)
-parent_dir = script_dir.replace("/archgui", "")
+parent_dir = str(script_dir.replace("/archgui", ""))
 
 workarea = Workarea(platform, fsg)
 windows = Windows(platform, fsg, workarea)
@@ -32,6 +32,7 @@ if os.path.isdir(parent_dir + "/archgui_events"):
         if file_split[1] == ".py":
             my_module = importlib.import_module("archgui_events." + file_split[0])
             models_event[file_split[0]] = my_module.Events()
+
 else:
 
     print("Le dossier 'archgui_events' est introuvable.")
@@ -45,19 +46,20 @@ if os.path.isdir(parent_dir + "/archgui_windows"):
 
         if file_split[1] == ".json":
             specters[file_split[0]] = json.load(io.open(parent_dir + "/archgui_windows/" + file))
+
 else:
 
-    print("Le dossier 'archgui_events' est introuvable.")
+    print("Le dossier 'archgui_windows' est introuvable.")
     exit(0)
 
+with open(script_dir + "/config/default.json", "r") as file:
+    config = json.load(file)
 
-config = json.load(io.open(script_dir + "/config/default.json"))
-
-windows.load_config(config)
+windows.load_config(script_dir, config)
 models_window = {}
 
-for model in models_event:
-    models_window[model] = Model(windows, model, specters[model])
+for mod in models_event:
+    models_window[mod] = Model(script_dir, windows, mod, specters[mod])
 
 windows.load_models(models_window, models_event)
 
@@ -88,7 +90,7 @@ def define_main(uniqid: str):
         return False
 
 
-def open(model: str, monitor=None, id=None, title=None, uniqid=None, location=None, size=None, alpha_channel=1, force_toplevel=False):
+def activate(model: str, monitor=None, id=None, title=None, uniqid=None, location=None, size=None, alpha_channel=1):
     """
     :param model:
     :param monitor:
@@ -98,12 +100,11 @@ def open(model: str, monitor=None, id=None, title=None, uniqid=None, location=No
     :param location:
     :param size:
     :param alpha_channel:
-    :param force_toplevel:
     :return:
     """
     global windows
 
-    uniqid = windows.open(
+    uniqid = windows.activate(
         model=model,
         monitor=monitor,
         id=id,
@@ -111,8 +112,7 @@ def open(model: str, monitor=None, id=None, title=None, uniqid=None, location=No
         uniqid=uniqid,
         location=location,
         size=size,
-        alpha_channel=alpha_channel,
-        force_toplevel=force_toplevel)
+        alpha_channel=alpha_channel)
 
     if uniqid:
         return uniqid
@@ -165,14 +165,14 @@ def update(items: list, uniqid=None):
         return False
 
 
-def close(uniqid: str):
+def deactivate(uniqid: str):
     """
     :param uniqid:
     :return:
     """
     global windows
 
-    if windows.close(uniqid=uniqid):
+    if windows.deactivate(uniqid=uniqid):
         return True
     else:
         return False

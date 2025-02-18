@@ -10,25 +10,6 @@ import logging
 
 from pynput.keyboard import Key, Controller
 
-# -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
-#
-#    Classe gérant l'ouverture/fermeture et les interactions des fenêtres
-#    Chaque fenêtre est issu d’un Model et possède ses propres Events
-#
-#    Chaque modèle peut etre appelé autant de fois que voulu à condition de
-#    donner un nouvel wid pour chaque appel supplémentaire du meme Model
-#
-#    Chaque Model et Events sont chargé respectivement dans :
-#     - self.wds_windows  copié dans  : self.wds_uniqid
-#     - self.wds_events
-#    La Window de FreeSimpleGUI est chargé dans : self.wds_simplegui
-#
-#    Les Events peuvent accéder à cette classe via la variable self.windows
-#
-# -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
-
 
 class Windows:
     """
@@ -53,6 +34,7 @@ class Windows:
 
         # -----------------------------------------------------------------
 
+        self.script_dir = None
         self.config = None
         self.window_main = None
 
@@ -79,10 +61,8 @@ class Windows:
     # / Chargement de la configuration de FreeSimpleGUI
     # ---------------------------------------------------------------------
 
-    def load_config(self, config):
-        """
-        :param config:
-        """
+    def load_config(self, script_dir, config):
+        self.script_dir = script_dir
         self.config = config
         self.fsg.theme(self.config["general"]["theme"])
 
@@ -91,10 +71,6 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def load_models(self, models_window, models_event):
-        """
-        :param models_window:
-        :param models_event:
-        """
         self.models_window = models_window
         self.models_event = models_event
 
@@ -103,10 +79,6 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def define_modules(self, modules) -> bool:
-        """
-        :param modules:
-        :return:
-        """
         self.modules = modules
         return True
 
@@ -115,10 +87,6 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def define_main(self, uniqid: str) -> bool:
-        """
-        :param uniqid:
-        :return:
-        """
         if uniqid in self.wds_uniqid:
             self.window_main = uniqid
             return True
@@ -126,15 +94,10 @@ class Windows:
             return False
 
     # ---------------------------------------------------------------------
-    # / Retourne l’UNIQID d’une fenêtre à partir du model + wid
+    # / Retourne l’UNIQID d’une fenêtre à partir du interpreter + wid
     # ---------------------------------------------------------------------
 
     def uniqid(self, model: str, id: int):
-        """
-        :param model:
-        :param id:
-        :return:
-        """
         uniqid = None
         if model in self.wds_windows:
             if id in self.wds_windows[model]:
@@ -146,14 +109,10 @@ class Windows:
             return False
 
     # ---------------------------------------------------------------------
-    # / Retourne l’UNIQID d’une fenêtre à partir du model + wid
+    # / Retourne l’UNIQID d’une fenêtre à partir du interpreter + wid
     # ---------------------------------------------------------------------
 
     def window(self, uniqid: str) -> bool:
-        """
-        :param uniqid:
-        :return:
-        """
         if uniqid in self.wds_uniqid:
             return self.wds_uniqid[uniqid]
         else:
@@ -164,10 +123,6 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def exist(self, uniqid: str) -> bool:
-        """
-        :param uniqid:
-        :return:
-        """
         if uniqid in self.wds_uniqid:
             return True
         else:
@@ -179,20 +134,9 @@ class Windows:
     # / Retourne False si la fenêtre existe déjà
     # ---------------------------------------------------------------------
 
-    def open(self, model: str, monitor: str, id: str, title: str,
-             uniqid=None, location=None, size=None, alpha_channel=None, force_toplevel=None):
-        """
-        :param model:
-        :param monitor:
-        :param id:
-        :param title:
-        :param uniqid:
-        :param location:
-        :param size:
-        :param alpha_channel:
-        :param force_toplevel:
-        :return:
-        """
+    def activate(self, model: str, monitor: str, id: str, title: str,
+                 uniqid=None, location=None, size=None, alpha_channel=None):
+
         with self.lock:
 
             try:
@@ -215,14 +159,13 @@ class Windows:
                     self.wds_windows[model][id] = copy.copy(self.models_window[model])
                     self.wds_events[model][id] = copy.copy(self.models_event[model])
 
-                    simplegui = self.wds_windows[model][id].open(
+                    simplegui = self.wds_windows[model][id].activate(
                         monitor=monitor,
                         id=id,
                         title=title,
                         location=location,
                         size=size,
-                        alpha_channel=alpha_channel,
-                        force_toplevel=force_toplevel
+                        alpha_channel=alpha_channel
                     )
 
                     if uniqid is None:
@@ -255,22 +198,12 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def show(self, uniqid: str) -> bool:
-        """
-        :param uniqid:
-        :return:
-        """
-        try:
-
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                if self.wds_uniqid[uniqid].is_hide:
-                    self.wds_uniqid[uniqid].show()
-                    return True
-                else:
-                    return False
-
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].is_hide:
+                self.wds_uniqid[uniqid].show()
+                return True
+            else:
+                return False
 
     # ---------------------------------------------------------------------
     # / Si la fenêtre n’est pas hide, la fenêtre est hide et retourne True
@@ -278,42 +211,23 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def hide(self, uniqid: str):
-        """
-        :param uniqid:
-        :return:
-        """
-        try:
-
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                if self.wds_uniqid[uniqid].is_hide:
-                    return False
-                else:
-                    self.wds_uniqid[uniqid].hide()
-                    return True
-
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].is_hide:
+                return False
+            else:
+                self.wds_uniqid[uniqid].hide()
+                return True
 
     # ---------------------------------------------------------------------
     # / Créer un Bind
     # ---------------------------------------------------------------------
 
     def bind(self, uniqid: str, binds: list) -> bool:
-        """
-        :param uniqid:
-        :param binds:
-        :return:
-        """
-        try:
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                if self.wds_uniqid[uniqid].bind(binds):
-                    return True
-                else:
-                    return False
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].bind(binds):
+                return True
+            else:
+                return False
 
     # ---------------------------------------------------------------------
     # / Retourne la valeur de l'item
@@ -321,24 +235,12 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def get_item(self, item: str, uniqid=None):
-        """
-        :param uniqid:
-        :param item:
-        :return:
-        """
+        if uniqid is None:
+            uniqid = self.window_main
 
-        try:
-
-            if uniqid is None:
-                uniqid = self.window_main
-
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                return self.wds_uniqid[uniqid].get_item(item)
-            else:
-                return False
-
-        except Exception as e:
-            logging.exception(e)
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            return self.wds_uniqid[uniqid].get_item(item)
+        else:
             return False
 
     # ---------------------------------------------------------------------
@@ -347,29 +249,14 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def update(self, items: list, uniqid=None) -> bool:
-        """
-        :param uniqid:
-        :param items:
-        :return:
-        """
+        if uniqid is None:
+            uniqid = self.window_main
 
-        try:
-
-            if uniqid is None:
-                uniqid = self.window_main
-
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                try:
-                    if self.wds_uniqid[uniqid].update(items):
-                        return True
-                    else:
-                        return False
-                except Exception as err:
-                    print(err)
-
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].update(items):
+                return True
+            else:
+                return False
 
     # ---------------------------------------------------------------------
     # / Dessine une image sur le graphique
@@ -378,22 +265,11 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def graph_draw_image(self, graph: str, location: list, uniqid=None, image=None) -> bool:
-        """
-        :param graph:
-        :param location:
-        :param uniqid:
-        :param image:
-        :return:
-        """
-        try:
-            if uniqid is None:
-                uniqid = self.window_main
+        if uniqid is None:
+            uniqid = self.window_main
 
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                return self.wds_uniqid[uniqid].graph_draw_image(graph, location, image)
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            return self.wds_uniqid[uniqid].graph_draw_image(graph, location, image)
 
     # ---------------------------------------------------------------------
     # / Dessine une line sur le graphique
@@ -402,24 +278,11 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def graph_draw_line(self, graph: str, point_from: list, point_to: list, color="white", width=1, uniqid=None) -> bool:
-        """
-        :param graph:
-        :param point_from:
-        :param point_to:
-        :param color:
-        :param width:
-        :param uniqid:
-        :return:
-        """
-        try:
-            if uniqid is None:
-                uniqid = self.window_main
+        if uniqid is None:
+            uniqid = self.window_main
 
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                return self.wds_uniqid[uniqid].graph_draw_line(graph, point_from, point_to, color, width)
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            return self.wds_uniqid[uniqid].graph_draw_line(graph, point_from, point_to, color, width)
 
     # ---------------------------------------------------------------------
     # / Fait monter une figure sur l'axe Z
@@ -428,24 +291,14 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def graph_bring_figure_to_front(self, graph: str, figure: int, uniqid=None) -> bool:
-        """
-        :param uniqid:
-        :param graph:
-        :param figure:
-        :return:
-        """
-        try:
-            if uniqid is None:
-                uniqid = self.window_main
+        if uniqid is None:
+            uniqid = self.window_main
 
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                if self.wds_uniqid[uniqid].graph_bring_figure_to_front(graph, figure):
-                    return True
-                else:
-                    return False
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].graph_bring_figure_to_front(graph, figure):
+                return True
+            else:
+                return False
 
     # ---------------------------------------------------------------------
     # / Fait descendre une figure sur l'axe Z
@@ -454,24 +307,14 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def graph_send_figure_to_back(self, graph: str, figure: int, uniqid=None) -> bool:
-        """
-        :param uniqid:
-        :param graph:
-        :param figure:
-        :return:
-        """
-        try:
-            if uniqid is None:
-                uniqid = self.window_main
+        if uniqid is None:
+            uniqid = self.window_main
 
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                if self.wds_uniqid[uniqid].graph_send_figure_to_back(graph, figure):
-                    return True
-                else:
-                    return False
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].graph_send_figure_to_back(graph, figure):
+                return True
+            else:
+                return False
 
     # ---------------------------------------------------------------------
     # / Supprimer une figure
@@ -480,30 +323,28 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def graph_delete_figure(self, graph: str, figure: int, uniqid=None) -> bool:
-        """
-        :param uniqid:
-        :param graph:
-        :param figure:
-        :return:
-        """
-        try:
-            if uniqid is None:
-                uniqid = self.window_main
+        if uniqid is None:
+            uniqid = self.window_main
 
-            if uniqid is not None and uniqid in self.wds_uniqid:
-                if self.wds_uniqid[uniqid].graph_delete_figure(graph, figure):
-                    return True
-                else:
-                    return False
-        except Exception as e:
-            logging.exception(e)
-            return False
+        if uniqid is not None and uniqid in self.wds_uniqid:
+            if self.wds_uniqid[uniqid].graph_delete_figure(graph, figure):
+                return True
+            else:
+                return False
+
+    # ---------------------------------------------------------------------
+    # / Ferme une fenêtre
+    # ---------------------------------------------------------------------
+
+    def deactivate(self, uniqid: str):
+        if uniqid in self.wds_simplegui:
+            self.deactivate_and_purge(self.wds_simplegui[uniqid])
 
     # ---------------------------------------------------------------------
     # / Purge les données lors da la fermeture d’une fenêtre
     # ---------------------------------------------------------------------
 
-    def close_and_purge(self, window):
+    def deactivate_and_purge(self, window):
         """
         :param window:
         """
@@ -512,7 +353,7 @@ class Windows:
         for uniqid in self.wds_simplegui:
             if self.wds_simplegui[uniqid] == window:
                 wds_deleted[uniqid] = {
-                    "model": self.wds_uniqid[uniqid].model,
+                    "interpreter": self.wds_uniqid[uniqid].model,
                     "id": self.wds_uniqid[uniqid].id
                 }
 
@@ -522,7 +363,7 @@ class Windows:
             del self.wds_simplegui[uniqid]
             del self.wds_uniqid[uniqid]
 
-            model = wds_deleted[uniqid]["model"]
+            model = wds_deleted[uniqid]["interpreter"]
             id = wds_deleted[uniqid]["id"]
 
             del self.wds_windows[model][id]
@@ -543,23 +384,18 @@ class Windows:
     # ---------------------------------------------------------------------
 
     def stop(self):
-        """
-        stop()
-        """
         uniqids = self.wds_uniqid.copy()
         for uniqid in uniqids:
             if uniqid != self.window_main:
-                self.close_and_purge(self.wds_simplegui[uniqid])
-        self.close_and_purge(self.wds_simplegui[self.window_main])
+                self.deactivate_and_purge(self.wds_simplegui[uniqid])
+        self.deactivate_and_purge(self.wds_simplegui[self.window_main])
 
     # ---------------------------------------------------------------------
     # / Boucle d'écoute des Events
     # ---------------------------------------------------------------------
 
     def events_run(self):
-        """
-        events_run()
-        """
+
         while True:
 
             stop = False
@@ -577,7 +413,7 @@ class Windows:
                             stop = True
 
                 if window is not None:
-                    self.close_and_purge(window)
+                    self.deactivate_and_purge(window)
 
             else:
 

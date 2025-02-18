@@ -2,95 +2,68 @@
 Interpreter.py
 """
 
+import json
 
-def list_to_tuple(ll):
-    """
-    :param ll:
-    :return:
-    """
-    return tuple(list_to_tuple(x) for x in ll) if type(ll) is list else ll
+# Importation des modules nécessaires pour gérer les différents éléments du modèle.
+from .interpreter.add_button import add_button
+from .interpreter.add_button_calendar import add_button_calendar
+from .interpreter.add_button_color import add_button_color
+from .interpreter.add_button_file import add_button_file
+from .interpreter.add_button_files import add_button_files
+from .interpreter.add_button_folder import add_button_folder
+from .interpreter.add_button_save import add_button_save
+from .interpreter.add_canvas import add_canvas
+from .interpreter.add_column import add_column
+from .interpreter.add_frame import add_frame
+from .interpreter.add_graph import add_graph
+from .interpreter.add_in_checkbox import add_in_checkbox
+from .interpreter.add_in_combo import add_in_combo
+from .interpreter.add_in_line import add_in_line
+from .interpreter.add_in_lines import add_in_lines
+from .interpreter.add_label import add_label
+from .interpreter.add_progress_bar import add_progress_bar
+from .interpreter.add_tab import add_tab
+from .interpreter.add_in_radio import add_in_radio
+from .interpreter.add_tab_group import add_tab_group
+from .interpreter.create_items import create_items
+from .interpreter.create_layout import create_layout
+from .interpreter.create_parameters import create_parameters
 
-
-# -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
-#
-#    Classe permettant de convertir le model.json en item FreeSimpleGUI
-#
-# -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
 
 class Interpreter:
     """
-    CLass Interpreter
+    Classe `Interpreter` :
+    Cette classe agit comme un interpréteur pour initialiser le modèle
+    avec des éléments, configurations, et pour permettre la création
+    de layouts dynamiques.
     """
 
-    def __init__(self, fsg, config, window):
+    def __init__(self, script_dir, fsg, config, window):
+        """
+        Constructeur de la classe Interpreter.
 
-        # -----------------------------------------------------------------
+        :param script_dir: Répertoire contenant les scripts de configuration.
+        :param fsg: Instance ou gestionnaire (non défini précisément ici).
+        :param config: Configuration globale sous forme de dictionnaire.
+        :param window: Fenêtre ou contexte associé à l'interface graphique.
+        """
 
+        # Initialisation des attributs principaux.
+        self.script_dir = script_dir
         self.fsg = fsg
         self.window = window
         self.config = config
 
-        # -----------------------------------------------------------------
+        # Chargement des paramètres par défaut depuis un fichier JSON.
+        with open(script_dir + "/config/parameters.json", "r") as file:
+            self.config["parameters"] = json.load(file)
 
-        self.config["parameters"] = {
-            "t": ["type", "'str'"],
-            "v": ["value", "'str'"],
-            "k": ["key", "'str'"],
-            "p": ["pad", (("int", "int"), ("int", "int"))],
-            "s": ["size", ("int", "int")],
-            "d": ["disabled", "'bool'"],
-            "bw": ["border_width", "'int'"],
-            "f": ["font", ("str", "int")],
-            "g": ["group", "'str'"],
-            "df": ["default", "'bool'"],
-            "dv": ["default_value", "'str'"],
-            "tl": ["tab_location",
-                   ["top", "topleft", "topright", "left", "lefttop", "leftbottom", "right", "righttop", "rightbottom",
-                    "bottom", "bottomleft", "bottomright"]],
-            "ro": ["readonly", "'bool'"],
-            "av": ["vertical_alignment", ["top", "center", "bottom"]],
-            "ae": ["element_justification", ["left", "center", "right"]],
-            "tg": ["target", "'str'"],
-            "sc": ["scrollable", "'bool'"],
-            "scvo": ["vertical_scroll_only", "'bool'"],
-            "ns": ["no_scrollbar", "'bool'"],
-            "xx": ["expand_x", "'bool'"],
-            "xy": ["expand_y", "'bool'"],
-            "tw": ["truncate_height", "'bool'"],
-            "th": ["truncate_width", "'bool'"],
-            "vbl": ["visible", "'bool'"],
-            "bgc": ["background_color", "'str'"]
-        }
+        # Chargement des items depuis un fichier JSON.
+        with open(script_dir + "/config/items.json", "r") as file:
+            self.config["items"] = json.load(file)
 
-        # -----------------------------------------------------------------
-
-        self.config["items"] = {
-            "column": ["k", "p", "s", "sc", "scvo", "av", "ae", "xx", "xy", "vbl", "bgc"],
-            "tab_group": ["k", "p", "s", "f", "tl", "xx", "xy"],
-            "tab": ["k", "p", "d", "ae", "xx", "xy"],
-            "frame": ["k", "p", "s", "av", "ae", "f", "xx", "xy"],
-            "canvas": ["k", "p", "s", "xx", "xy"],
-            "graph": ["k", "p", "s", "bw", "bgc"],
-            "label": ["k", "p", "s", "f", "xx", "xy", "v"],
-            "progress_bar": ["k", "p", "s", "xx", "xy", "v"],
-            "in_line": ["k", "p", "s", "ro", "f", "xx", "xy", "v"],
-            "in_lines": ["k", "p", "s", "f", "d", "ns", "xx", "xy", "v"],
-            "in_radio": ["k", "p", "s", "ro", "f", "xx", "xy", "v", "g"],
-            "in_checkbox": ["k", "p", "d", "s", "xx", "xy", "v"],
-            "in_combo": ["k", "p", "d", "s", "xx", "xy", "dv", "ro", "f", "v"],
-            "button": ["k", "p", "s", "d", "f", "v"],
-            "button_file": ["k", "tg", "p", "s", "d", "f", "v"],
-            "button_files": ["k", "tg", "p", "s", "d", "f", "v"],
-            "button_save": ["k", "tg", "p", "s", "d", "f", "v"],
-            "button_folder": ["k", "tg", "p", "s", "d", "f", "v"],
-            "button_calendar": ["k", "tg", "p", "s", "d", "f", "v"],
-            "button_color": ["k", "tg", "p", "s", "d", "f", "v"],
-        }
-
-        # -----------------------------------------------------------------
-
+        # Création d'un sous-dictionnaire contenant les items qui peuvent
+        # être "déclencheurs" dans des événements.
         self.config["trigger_items"] = {
             "in_line": self.config["items"]["in_line"],
             "in_lines": self.config["items"]["in_lines"],
@@ -106,721 +79,128 @@ class Interpreter:
             "button_color": self.config["items"]["button_color"]
         }
 
+    def list_to_tuple(self, ll):
+        return tuple(self.list_to_tuple(x) for x in ll) if type(ll) is list else ll
+
     # ---------------------------------------------------------------------
-    # / Agrège les paramètres par défaut et les paramètres spécifiés
-    # / pour chaque item du model
+    # Methodes principales pour la gestion des paramètres et du layout.
     # ---------------------------------------------------------------------
 
     def create_parameters(self, item):
         """
-        :param item:
-        :return:
+        Agrège les paramètres par défaut et les paramètres spécifiés
+        pour un item donné.
+
+        :param item: Élément pour lequel les paramètres doivent être générés.
+        :return: Résultat de l'appel à `create_parameters`.
         """
-        parameters = {}
-        if "k" in item[0]:
-            parameters["t"] = item[0]["t"]
-
-        for parameter in self.config[item[0]["t"]]:
-            if parameter in self.config["parameters"]:
-
-                parameters[parameter] = self.config[item[0]["t"]][parameter]
-
-                if parameter in item[0]:
-                    parameters[parameter] = item[0][parameter]
-
-                if isinstance(parameters[parameter], list):
-                    parameters[parameter] = list_to_tuple(parameters[parameter])
-
-        return parameters
-
-    # ---------------------------------------------------------------------
-    # / Créé le layout du model pour FreeSimpleGUI
-    # ---------------------------------------------------------------------
+        return create_parameters(self, item)
 
     def create_layout(self, items):
         """
-        :param items:
-        :return:
-        """
-        items_list = {}
-        layout, items_list = self.create_items(items, items_list)
+        Crée le layout basé sur les items fournis.
 
-        return layout, items_list
+        :param items: Liste des items à organiser dans le layout.
+        :return: Résultat de l'appel à `create_layout`.
+        """
+        return create_layout(self, items)
 
     # ---------------------------------------------------------------------
-    # / Liste des items
+    # Accesseurs pour les items et les "trigger items".
     # ---------------------------------------------------------------------
 
     def items(self):
         """
-        :return:
+        Retourne la liste complète des items issus de la configuration actuelle.
+
+        :return: Dictionnaire des items.
         """
         return self.config["items"]
 
-    # ---------------------------------------------------------------------
-    # / Liste des items pouvant etre trigger dans un event
-    # ---------------------------------------------------------------------
-
     def trigger_items(self):
         """
-        :return:
+        Retourne la liste des items pouvant être déclenchés par un événement.
+
+        :return: Dictionnaire des items "déclencheurs".
         """
         return self.config["trigger_items"]
 
     # ---------------------------------------------------------------------
-    # / Créé les items pour le layout
+    # Gestion de la création des items pour les layouts.
     # ---------------------------------------------------------------------
 
     def create_items(self, items=None, items_list=None):
         """
-        :param items:
-        :param items_list:
-        :return:
+        Crée les items pour le layout. Les items et items_list représentent
+        les éléments à intégrer dans l'interface graphique.
+
+        :param items: Liste des items définis.
+        :param items_list: Autre liste optionnelle d'items.
+        :return: Résultat de l'appel à `create_items`.
         """
-
-        layout = []
-
-        row_c = 0
-        for row in items:
-
-            layout.append([])
-
-            for item in row:
-
-                if item[0]["t"] == "column":
-                    rl, items_list = self.add_column(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "tab_group":
-                    rl, items_list = self.add_tab_group(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "tab":
-                    rl, items_list = self.add_tab(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "frame":
-                    rl, items_list = self.add_frame(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "canvas":
-                    rl, items_list = self.add_canvas(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "graph":
-                    rl, items_list = self.add_graph(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "label":
-                    rl, items_list = self.add_label(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "in_line":
-                    rl, items_list = self.add_in_line(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "in_lines":
-                    rl, items_list = self.add_in_lines(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "in_radio":
-                    rl, items_list = self.add_in_radio(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "in_checkbox":
-                    rl, items_list = self.add_in_checkbox(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "in_combo":
-                    rl, items_list = self.add_in_combo(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button":
-                    rl, items_list = self.add_button(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button_file":
-                    rl, items_list = self.add_button_file(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button_files":
-                    rl, items_list = self.add_button_files(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button_save":
-                    rl, items_list = self.add_button_save(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button_folder":
-                    rl, items_list = self.add_button_folder(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button_calendar":
-                    rl, items_list = self.add_button_calendar(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "button_color":
-                    rl, items_list = self.add_button_color(item, items_list)
-                    layout[row_c].append(rl)
-                elif item[0]["t"] == "progress_bar":
-                    rl, items_list = self.add_progress_bar(item, items_list)
-                    layout[row_c].append(rl)
-
-            row_c += 1
-
-        return layout, items_list
+        return create_items(self, items=items, items_list=items_list)
 
     # ---------------------------------------------------------------------
-    # / Les items pouvant etre utilisé dans un model :
+    # Méthodes pour gérer les différents types d'éléments du modèle.
+    # Ces méthodes appellent les modules correspondants pour chaque type.
     # ---------------------------------------------------------------------
 
     def add_column(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        items, items_list = self.create_items(
-            items=item[1],
-            items_list=items_list)
-
-        new_item = self.fsg.pin(self.fsg.Column(
-            items,
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            scrollable=parameters["sc"],
-            vertical_scroll_only=parameters["scvo"],
-            vertical_alignment=parameters["av"],
-            element_justification=parameters["ae"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"],
-            visible=parameters["vbl"],
-            background_color=parameters["bgc"]
-        ), shrink=True)
-
-        if parameters["bgc"] is not None:
-            new_item.BackgroundColor = parameters["bgc"]
-        else:
-            new_item.BackgroundColor = self.fsg.theme_background_color()
-
-        return new_item, items_list
+        return add_column(self, item, items_list)
 
     def add_tab_group(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        items, items_list = self.create_items(
-            items=item[1],
-            items_list=items_list)
-
-        new_item = self.fsg.TabGroup(
-            items,
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            font=parameters["f"],
-            enable_events=True,
-            change_submits=True,
-            tab_location=parameters["tl"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_tab_group(self, item, items_list)
 
     def add_tab(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        items, items_list = self.create_items(
-            items=item[1],
-            items_list=items_list)
-
-        new_item = self.fsg.Tab(
-            parameters["v"],
-            items,
-            key=parameters["k"],
-            pad=parameters["p"],
-            disabled=parameters["d"],
-            element_justification=parameters["ae"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_tab(self, item, items_list)
 
     def add_frame(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        items, items_list = self.create_items(
-            items=item[1],
-            items_list=items_list)
-
-        new_item = self.fsg.pin(self.fsg.Frame(
-            parameters["v"],
-            items,
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            vertical_alignment=parameters["av"],
-            element_justification=parameters["ae"],
-            font=parameters["f"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        ), shrink=True)
-
-        return new_item, items_list
+        return add_frame(self, item, items_list)
 
     def add_canvas(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Canvas(
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        new_item.BackgroundColor = self.fsg.theme_background_color()
-
-        return new_item, items_list
+        return add_canvas(self, item, items_list)
 
     def add_graph(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Graph(
-            key=parameters["k"],
-            pad=parameters["p"],
-            canvas_size=parameters["s"],
-            border_width=parameters["bw"],
-            graph_bottom_left=(0, parameters["s"][1]),
-            graph_top_right=(parameters["s"][0], 0),
-            change_submits=True,
-            motion_events=True,
-            enable_events=True
-        )
-
-        if parameters["bgc"] is not None:
-            new_item.BackgroundColor = parameters["bgc"]
-        else:
-            new_item.BackgroundColor = self.fsg.theme_background_color()
-
-        return new_item, items_list
+        return add_graph(self, item, items_list)
 
     def add_label(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Text(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            font=parameters["f"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_label(self, item, items_list)
 
     def add_progress_bar(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.ProgressBar(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_progress_bar(self, item, items_list)
 
     def add_in_line(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.InputText(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            readonly=parameters["ro"],
-            font=parameters["f"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_in_line(self, item, items_list)
 
     def add_in_lines(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"],
-                "truncate_width": parameters["tw"],
-                "truncate_height": parameters["th"]
-            }
-
-        new_item = self.fsg.Multiline(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            font=parameters["f"],
-            disabled=parameters["d"],
-            no_scrollbar=parameters["ns"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_in_lines(self, item, items_list)
 
     def add_in_radio(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Radio(
-            parameters["v"],
-            parameters["g"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"],
-            group_id=parameters["g"]
-        )
-
-        return new_item, items_list
+        return add_in_radio(self, item, items_list)
 
     def add_in_checkbox(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Checkbox(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            disabled=parameters["d"],
-            size=parameters["s"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
-        )
-
-        return new_item, items_list
+        return add_in_checkbox(self, item, items_list)
 
     def add_in_combo(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Combo(
-            parameters["v"],
-            auto_size_text=False,
-            key=parameters["k"],
-            pad=parameters["p"],
-            disabled=parameters["d"],
-            enable_events=True,
-            change_submits=True,
-            size=parameters["s"],
-            font=parameters["f"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"],
-            readonly=parameters["ro"],
-            default_value=parameters["dv"]
-        )
-
-        return new_item, items_list
+        return add_in_combo(self, item, items_list)
 
     def add_button(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.Button(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"]
-        )
-
-        return new_item, items_list
+        return add_button(self, item, items_list)
 
     def add_button_file(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.FileBrowse(
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"],
-            button_text=parameters["v"],
-        )
-
-        return new_item, items_list
+        return add_button_file(self, item, items_list)
 
     def add_button_files(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.FilesBrowse(
-            key=parameters["k"],
-            target=parameters["tg"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"],
-            button_text=parameters["v"],
-        )
-
-        return new_item, items_list
+        return add_button_files(self, item, items_list)
 
     def add_button_save(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.FileSaveAs(
-            key=parameters["k"],
-            target=parameters["tg"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"],
-            button_text=parameters["v"],
-        )
-
-        return new_item, items_list
+        return add_button_save(self, item, items_list)
 
     def add_button_folder(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.FolderBrowse(
-            key=parameters["k"],
-            target=parameters["tg"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"],
-            button_text=parameters["v"],
-        )
-
-        return new_item, items_list
+        return add_button_folder(self, item, items_list)
 
     def add_button_calendar(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.CalendarButton(
-            key=parameters["k"],
-            target=parameters["tg"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"],
-            button_text=parameters["v"],
-        )
-
-        return new_item, items_list
+        return add_button_calendar(self, item, items_list)
 
     def add_button_color(self, item, items_list):
-        """
-        :param item:
-        :param items_list:
-        :return:
-        """
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.ColorChooserButton(
-            key=parameters["k"],
-            target=parameters["tg"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            disabled=parameters["d"],
-            font=parameters["f"],
-            button_text=parameters["v"],
-        )
-
-        return new_item, items_list
+        return add_button_color(self, item, items_list)

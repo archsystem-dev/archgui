@@ -1,0 +1,38 @@
+{
+  "full-screen": false,
+  "location_x": null,
+  "location_y": null,
+  "width": null,
+  "height": null,
+  "location_x_relative": {
+    "interpreter": null,
+    "wid": null,
+    "uniqid": null
+  },
+  "location_y_relative": {
+    "interpreter": null,
+    "wid": null,
+    "uniqid": null
+  },
+  "location_x_equal": {
+    "interpreter": null,
+    "wid": null,
+    "uniqid": null
+  },
+  "location_y_equal": {
+    "interpreter": null,
+    "wid": null,
+    "uniqid": null
+  },
+  "width_equal": {
+    "interpreter": null,
+    "wid": null,
+    "uniqid": null
+  },
+  "height_equal": {
+    "interpreter": null,
+    "wid": null,
+    "uniqid": null
+  },
+  "scrollable": false
+}
